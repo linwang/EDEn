@@ -6,6 +6,7 @@
 
 #include "ScriptEngine.h"
 #include "TileEngine.h"
+#include "PlayerData.h"
 #include "Scheduler.h"
 #include "ResourceLoader.h"
 #include "Music.h"
@@ -19,6 +20,8 @@
 #include "LuaPlayerCharacter.h"
 #include "LuaActor.h"
 #include "LuaTileEngine.h"
+
+#include "LuaQuest.h"
 
 #include "LuaWrapper.hpp"
 
@@ -65,7 +68,11 @@ ScriptEngine::ScriptEngine(TileEngine& tileEngine, PlayerData& playerData, Sched
 
    luaopen_PlayerCharacter(luaVM);
    luaW_push<PlayerCharacter>(luaVM, tileEngine.getPlayerCharacter());
-   lua_setglobal(luaVM, "player");
+   lua_setglobal(luaVM, "playerSprite");
+
+   luaopen_Quest(luaVM);
+   luaW_push<Quest>(luaVM, playerData.getRootQuest());
+   lua_setglobal(luaVM, "quests");
 }
 
 int ScriptEngine::narrate(lua_State* luaStack)
@@ -205,6 +212,7 @@ int ScriptEngine::generateRandom(lua_State* luaStack)
       {
          min = 0;
          max = (int)luaL_checknumber(luaStack, 1);
+         break;
       }
       case 2:
       {
@@ -222,7 +230,7 @@ int ScriptEngine::generateRandom(lua_State* luaStack)
    }
    
    /** \todo Random number generation is currently unseeded. Use a good seed. */
-   lua_pushnumber(luaVM, (rand() % (max - min)) + min);
+   lua_pushnumber(luaStack, (rand() % (max - min)) + min);
 
    return 1;
 }
